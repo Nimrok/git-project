@@ -25,6 +25,7 @@ Pointer ask_light_sensor;
 Pointer ds_start_conv;
 Pointer ds_get_data;
 Pointer draw_menu;
+Pointer draw_workspace;
 RTC time;
 LiquidCrystal_I2C lcd(0x3F,16,2);
 OneWire ds(one_wire);
@@ -51,7 +52,19 @@ byte ds_high_byte = 0;
 addMenu(el1,el2,el3,"PCFn");
 addMenu(el2,el3,el1,"DS18");
 addMenu(el3,el1,el2,"FLSH");
+char days=0;
+char months=0;
+char years=0;
+char hours=0;
+char minutes=0;
+char seconds=0;
+char day_number=0;
 //==================================================/                   ФУНКЦИИ
+void time_set(char days, char months, char years, char hours, char minutes, char seconds, char day_number)
+{
+  time.settime(days,months,years,hours,minutes,seconds,day_number);
+}
+//--------------------------------------------------/
 void moveMenu(submenu *NewMenu)
 {
   currentMenu = NewMenu;
@@ -127,6 +140,7 @@ void check_button(int interval)
           {
             button_active_func();
             menu_opened=1;
+            lcd.clear();
           }
         }
       }
@@ -179,6 +193,7 @@ void check_button(int interval)
             button_active_func();
             menu_opened=0;
             moveMenu(&el1);
+            lcd.clear();
           }
         }
       }
@@ -208,7 +223,7 @@ void setup()
   ds.write(0x4E);
   ds.write(0x28);
   ds.write(0x00);
-  ds.write(0x7F); 
+  ds.write(0x7F);
 }
 //==================================================/                   ЦИКЛ ЛУП
 void loop() 
@@ -224,14 +239,10 @@ void loop()
     {
       if (digitalRead(light_sensor)==0)
       {
-        lcd.setCursor(4,0);
-        lcd.print("light");
         digitalWrite(relay, HIGH);
       }
       else
       {
-        lcd.setCursor(4,0);
-        lcd.print("dark ");
         digitalWrite(relay, LOW);
       }
     }
@@ -249,9 +260,11 @@ void loop()
       ds_high_byte=ds.read();
       ds_low_byte=ds.read();
       ds_temp =  ((ds_low_byte << 8) | ds_high_byte) * 0.0625;
-      lcd.clear();
-      lcd.setCursor(4,1);
-      lcd.print(ds_temp);
+    }
+    if (draw_workspace.point(50))
+    {
+      lcd.setCursor(0,0);
+      lcd.print(time.gettime("d-m, H:i:s"));
     }
   }
 //--------------------------------------------------/
